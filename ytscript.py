@@ -66,26 +66,28 @@ channel_ids = load_channel_ids()
 # Load the last video IDs from the file
 last_video_ids = load_last_videos()
 
+def search_and_add():
+    for channel_id in channel_ids:
+        try:
+            # Get the latest video ID for the channel
+            latest_video_id = get_latest_video(channel_id)
 
-for channel_id in channel_ids:
-    try:
-        # Get the latest video ID for the channel
-        latest_video_id = get_latest_video(channel_id)
+            # Check if there's a new video
+            if (
+                channel_id not in last_video_ids
+                or latest_video_id != last_video_ids[channel_id]
+            ):
+                last_video_ids[channel_id] = latest_video_id
+                # Construct the YouTube video URL
+                video_url = f"https://www.youtube.com/watch?v={latest_video_id}"
+                # Send the Discord webhook with the video URL
+                send_discord_webhook(webhook_url, video_url)
+        except Exception as e:
+            print(f"An error occurred while checking the channel: {channel_id}")
+            send_discord_webhook(webhook_url, "eerror")
+            print(str(e))
 
-        # Check if there's a new video
-        if (
-            channel_id not in last_video_ids
-            or latest_video_id != last_video_ids[channel_id]
-        ):
-            last_video_ids[channel_id] = latest_video_id
-            # Construct the YouTube video URL
-            video_url = f"https://www.youtube.com/watch?v={latest_video_id}"
-            # Send the Discord webhook with the video URL
-            send_discord_webhook(webhook_url, video_url)
-    except Exception as e:
-        print(f"An error occurred while checking the channel: {channel_id}")
-        send_discord_webhook(webhook_url, "eerror")
-        print(str(e))
+search_and_add()
 
 # Save the updated last video IDs to the file
 save_last_videos(last_video_ids)
